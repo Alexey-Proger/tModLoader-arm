@@ -205,8 +205,11 @@ internal static class ModOrganizer
 		return modPath.Contains(Path.Combine("workshop"), StringComparison.InvariantCultureIgnoreCase);
 	}
 
-	internal static string DetectAbnormalSteamWorkshopDownloads(out Action resolveAbnormalDownloads)
+	internal static string DetectAbnormalSteamWorkshopDownloads(out Action resolveAbnormalDownloads, out string continueButton, out string cancelButton)
 	{
+		//TODO: What happens if this is run on GoG or Family Share where it is using SteamGameServer and 'Subscribed' doesn't exist?
+		// Not tested -- 90% sure it should work fine since this code doesn't rely on Steam Workshop Subscription status to work. -- Solxan
+
 		// During initialize it forces update of CachedInstalledModDownloadItems
 		WorkshopBrowserModule.Instance.Initialize();
 
@@ -218,7 +221,26 @@ internal static class ModOrganizer
 		// if a local mod is installed and it doesn't have a corresponding workshop publish item AND isn't the reupload case
 		var installedWorkshopModsNotFoundOnWorkshop = FindWorkshopMods().Except(foundMDItems.Select(a => a.Installed));
 
-		if (!reuploadMDItems.Any() && !installedWorkshopModsNotFoundOnWorkshop.Any()) {
+		// Determine the Button Titles
+		/* This Code (& future related code) commented out as the UI for detecting installedModsNotOnWorkshop is underdeveloped
+		 * This code was added as a toss-in while doing PR 5071, but has too many extra complications to rush it compared to the needed reupload feature
+		 * To be re-added sometime after May 2026 -- Solxan
+		if (reuploadMDItems.Any() && installedWorkshopModsNotFoundOnWorkshop.Any()) {
+			cancelButton = Language.GetTextValue("tModLoader.KeepInstalled");
+			continueButton = Language.GetTextValue("tModLoader.ResolveAbnormalMods");
+		}
+		else if (installedWorkshopModsNotFoundOnWorkshop.Any()) {
+			cancelButton = Language.GetTextValue("tModLoader.KeepInstalled");
+			continueButton = Language.GetTextValue("tModLoader.DeleteMods");
+		}
+		else */ if (reuploadMDItems.Any()) {
+			cancelButton = Language.GetTextValue("tModLoader.ContinueAnyway");
+			continueButton = Language.GetTextValue("tModLoader.ResolveAbnormalMods");
+		}
+		else {
+			// Nothing to do/show
+			cancelButton = string.Empty;
+			continueButton = string.Empty;
 			resolveAbnormalDownloads = null;
 			return string.Empty;
 		}
@@ -231,35 +253,38 @@ internal static class ModOrganizer
 			foreach (var mod in toDeleteOldMods)
 				DeleteMod(mod);
 
-			if (reuploadMDItems.Any()) {
-				await UIModBrowser.DownloadMods(
-					reuploadMDItems,
-					Interface.loadModsID);
+			if (reuploadMDItems.Any() && await UIModBrowser.DownloadMods(reuploadMDItems, Interface.loadModsID)) {
+				Main.menuMode = Interface.loadModsID;
+				Main.MenuUI.SetState(null);	
 			}
 
 			// Group 2: Delete mods that originated from workshop but workshop doesn't have a replacement
+			/*
 			foreach (var mod in installedWorkshopModsNotFoundOnWorkshop)
 				DeleteMod(mod);
-		};
+			*/
+	};
 
 		// Messages for Users
 		var messages = new StringBuilder();
 
+		/*
 		if (installedWorkshopModsNotFoundOnWorkshop.Any()) {
 			messages.AppendLine(Language.GetTextValue("tModLoader.RemovedWorkshopMods"));
 			foreach (var mod in installedWorkshopModsNotFoundOnWorkshop) {
 				messages.AppendLine($"  {mod.DisplayNameClean}");
 			}
 		}
+		*/
 		
 		if (reuploadMDItems.Any()) {
 			messages.AppendLine(Language.GetTextValue("tModLoader.ReuploadedWorkshopMods"));
 			foreach (var mod in reuploadMDItems) {
-				messages.AppendLine($"  {mod.DisplayNameClean}");
+				messages.AppendLine($"  {mod.Installed.DisplayNameClean} --> {mod.DisplayNameClean}");
 			}
 		}
 
-		return messages.Length > 0 ? messages.ToString() : null;
+		return messages.Length > 0 ? messages.ToString() : string.Empty;
 	}
 
 	internal static HashSet<string> IdentifyMissingWorkshopDependencies()
