@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>SteamProxyHarness</AssemblyName>
+    <RootNamespace>SteamProxy.Harness</RootNamespace>
+    <RuntimeIdentifier>win-arm64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- The harness deliberately binds against the *rewritten* Steamworks.NET of a real install. -->
+    <SteamworksAssembly Condition="'$(SteamworksAssembly)' == ''">C:\Program Files (x86)\Steam\steamapps\common\tModLoader\Libraries\steamworks.net.anycpu\2025.162.4\runtimes\win\lib\net8.0\Steamworks.NET.dll</SteamworksAssembly>
+    <ProxyAssembly Condition="'$(ProxyAssembly)' == ''">$(MSBuildThisFileDirectory)..\Runtime\bin\Release\net8.0\SteamworksProxy.dll</ProxyAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Steamworks.NET">
+      <HintPath>$(SteamworksAssembly)</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SteamworksProxy">
+      <HintPath>$(ProxyAssembly)</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

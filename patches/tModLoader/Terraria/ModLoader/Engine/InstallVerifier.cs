@@ -119,6 +119,14 @@ internal static class InstallVerifier
 
 	private static DistributionPlatform DetectPlatform(out string detectionDetails)
 	{
+		// Steam launched us, so this is a Steam install no matter what else is lying around. On Windows ARM64 the
+		// Steamworks calls are serviced out-of-process by the win-ARM64 Steamworks bridge (see winarm/SteamProxy),
+		// because Windows refuses to load the x64 steam_api64.dll into a native ARM64 process.
+		if (Environment.GetEnvironmentVariable("SteamClientLaunch") == "1") {
+			detectionDetails = "launched by the Steam client";
+			return DistributionPlatform.Steam;
+		}
+
 		if (Program.LaunchParameters.ContainsKey("-steam")) {
 			detectionDetails = "-steam launch parameter";
 			return DistributionPlatform.Steam;
