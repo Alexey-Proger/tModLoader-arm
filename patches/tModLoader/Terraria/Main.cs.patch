@@ -3062,8 +3062,19 @@
  		if (diff == 1)
  			baseColor = new Microsoft.Xna.Framework.Color((byte)((float)(int)mcColor.R * num2), (byte)((float)(int)mcColor.G * num2), (byte)((float)(int)mcColor.B * num2), mouseTextColor);
  
-@@ -16095,6 +_,7 @@
+@@ -16081,6 +_,7 @@
+ 		int researchLine = -1;
+ 		rare = hoverItem.rare;
+ 		float knockBack = hoverItem.knockBack;
++		/*
+ 		float num = 1f;
+ 		if (hoverItem.melee && player[myPlayer].kbGlove)
+ 			num += 1f;
+@@ -16093,8 +_,10 @@
+ 
+ 		if (hoverItem.ranged && player[myPlayer].shroomiteStealth)
  			hoverItem.knockBack *= 1f + (1f - player[myPlayer].stealth) * 0.5f;
++		*/
  
  		int num2 = 30;
 +		num2 += hoverItem.ToolTip?.Lines ?? 0; // Easy fix to #4772. A full fix would require rewrites of hooks.
@@ -6288,7 +6299,7 @@
 +			// ModPack
 +			if (ModOrganizer.ModPackActive != null) {
 +				var font = FontAssets.MouseText.Value;
-+				string modpackText = Language.GetTextValue("tModLoader.CurrentModPack", Path.GetFileNameWithoutExtension(ModOrganizer.ModPackActive));
++				string modpackText = Language.GetTextValue("tModLoader.CurrentModPack", Path.GetFileName(ModOrganizer.ModPackActive));
 +				var packOrigin = font.MeasureString(modpackText);
 +
 +				spriteBatch.DrawString(font, modpackText, new Vector2(packOrigin.X + num + 10f, screenHeight - packOrigin.Y + num2 - 2f - (int)upBump), color, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
